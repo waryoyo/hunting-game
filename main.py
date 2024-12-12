@@ -108,7 +108,9 @@ def generate_walls():
 
 
 # Generate walls before starting the game loop
-walls = generate_walls()
+
+
+
 
 
 def check_collision_with_arena(player, arena_rect):
@@ -139,10 +141,53 @@ player_bullets = []
 key_stack = []  # Track pressed keys
 
 
+walls = []
+
+
+def generate_map(display):
+    display_width, display_height = display.get_size()
+    tile_width = display_width // 60
+    tile_height = display_height // 45
+
+    cols = (display_width + tile_width - 1) // tile_width
+    rows = (display_height + tile_height - 1) // tile_height
+
+    tiles = [[0 for _ in range(cols)] for _ in range(rows)]
+
+    # Add walls around the edges
+    for row in range(rows):
+        for col in range(cols):
+            if row == 5 or row == rows - 1 or col == 5 or col == cols - 1:
+                tiles[row][col] = 1
+
+    for row in range(rows):
+        for col in range(cols):
+            tile_value = tiles[row][col]
+            xPos = col * tile_width
+            yPos = row * tile_height
+
+            if tile_value == 1:  # Wall
+                walls.append(Wall(xPos, yPos, tile_width, tile_height))
+
+    return tiles
+def draw_map(display, tiles):
+    display_width, display_height = display.get_size()
+    tile_width = display_width // 60
+    tile_height = display_height // 45
+
+    cols = (display_width + tile_width - 1) // tile_width
+    rows = (display_height + tile_height - 1) // tile_height
+
+
+
+#(0, 82, 33)
+
+
+tiles = generate_map(display)
+
 while True:
     display.fill((0, 82, 33))
-    arena_rect = draw_arena()  # Get the arena boundaries(LEFT - UP - RIGHT - DOWN)
-
+    draw_map(display, tiles)
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             pygame.quit()
@@ -195,20 +240,14 @@ while True:
     if keys[pygame.K_s]:
         player.y += player_speed
 
-    # Check collision with arena border
-    check_collision_with_arena(player, arena_rect)
-
     # Draw player and bullets
     player.main(display)
 
-    # Update bullets and remove those that go off-screen
-    for bullet in player_bullets[:]:
-        bullet.main(display)
-        if bullet.x < arena_rect.left + 22 or bullet.x > arena_rect.right - 12 or bullet.y < arena_rect.top + 22 or bullet.y > arena_rect.bottom - 18:
-            player_bullets.remove(bullet)
-
     for wall in walls:
         wall.main(display)
+
+    for bullet in player_bullets[:]:
+        bullet.main(display)
 
     clock.tick(60)
     pygame.display.update()
