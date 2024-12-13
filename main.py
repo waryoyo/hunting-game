@@ -207,36 +207,54 @@ def generate_map(display):
 tiles = generate_map(display)
 
 
-def check_collision(display, player):
-    display_width, display_height = display.get_size()
+def check_collision(player, speed):
+    """Check if the player is about to collide with a wall based on their direction."""
+    display_width = pygame.display.Info().current_w
+    display_height = pygame.display.Info().current_h
+    tile_width = display_width // 60
+    tile_height = display_height // 45
 
-    player_col = int(player.x // 60)
-    player_row = int(player.y // 45)
+    # Calculate the player's next position based on their direction
+    next_x, next_y = player.x, player.y
+    if player.direction == "left":
+        next_x -= speed
+    elif player.direction == "right":
+        next_x += speed
+    elif player.direction == "up":
+        next_y -= speed
+    elif player.direction == "down":
+        next_y += speed
 
-    if (
-        player_row < 0
-        or player_row >= len(tiles)
-        or player_col < 0
-        or player_col >= len(tiles[0])
-    ):
-        return False
-    if tiles[player_row][player_col] == 1:
-        return True
+    # Get the tile indices for the next position's corners
+    corners = [
+        (next_x, next_y),  # Top-left
+        (next_x + player.width, next_y),  # Top-right
+        (next_x, next_y + player.height),  # Bottom-left
+        (next_x + player.width, next_y + player.height),  # Bottom-right
+    ]
 
+    for corner_x, corner_y in corners:
+        col = max(0, min(len(tiles[0]) - 1, int(corner_x // tile_width)))
+        row = max(0, min(len(tiles) - 1, int(corner_y // tile_height)))
+
+        # Check if the tile is a wall
+        if tiles[row][col] == 1:
+            return True  # Collision detected
     return False
-    # cols = (display_width + player_width - 1) // player_width
-    # rows = (display_height + player_height - 1) // player_height
 
-    # if tiles[rows]
-    # for wall in walls:
-    #     if player.x < wall.x + wall.width and player.x + player.width > wall.x:
-    #         if player.y < wall.y + wall.height and player.y + player.height > wall.y:
-    #             return True
-
+            # if player.direction == "up" and player.y < display_height/2:
+            #     player.y = (row + 1) * tile_height
+            # elif player.direction == "down" and player.y > display_height/2:
+            #     player.y = ((row - 1) * tile_height)-(player.height/2)
+            # elif player.direction == "left" and player.x < display_width/2:
+            #     player.x = (col + 1) * tile_width
+            # elif player.direction == "right" and player.x < display_width / 2:
+            #     player.x = ((col - 1) * tile_width)-(player.width/2)
 
 while True:
     display.fill((0, 82, 33))
     # draw_map(display, tiles)
+
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             pygame.quit()
@@ -288,7 +306,6 @@ while True:
                     PlayerBullet(lock_x + 5, lock_y + 5, player.direction)
                 )
 
-    print(check_collision(display, player))
 
     keys = pygame.key.get_pressed()
 
@@ -297,13 +314,21 @@ while True:
 
     # Move player based on the currently pressed keys
     if keys[pygame.K_a]:
-        player.x -= player_speed
+        player.direction = "left"
+        if not check_collision(player, player_speed):
+            player.x -= player_speed
     if keys[pygame.K_d]:
-        player.x += player_speed
+        player.direction = "right"
+        if not check_collision(player, player_speed):
+            player.x += player_speed
     if keys[pygame.K_w]:
-        player.y -= player_speed
+        player.direction = "up"
+        if not check_collision(player, player_speed):
+            player.y -= player_speed
     if keys[pygame.K_s]:
-        player.y += player_speed
+        player.direction = "down"
+        if not check_collision(player, player_speed):
+            player.y += player_speed
 
     # Draw player and bullets
     player.main(display)
