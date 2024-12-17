@@ -57,6 +57,32 @@ class Player:
         pygame.draw.rect(display, (0, 0, 255), (lock_x, lock_y, lock_size, lock_size))
 
 
+class Enemy:
+    def __init__(self, x, y, width, height):
+        self.x = x
+        self.y = y
+        self.width = width
+        self.height = height
+        self.speed = 2
+
+
+    #apply ai downthere!!
+    def follow_player(self, player):
+        if self.x < player.x:
+            self.x += self.speed
+        elif self.x > player.x:
+            self.x -= self.speed
+        if self.y < player.y:
+            self.y += self.speed
+        elif self.y > player.y:
+            self.y -= self.speed
+
+    def main(self, display, player):
+        self.follow_player(player)
+        pygame.draw.rect(display, (200, 0, 0), (self.x, self.y, self.width, self.height))
+
+
+
 def draw_arena():
     """Draw an empty arena with the larger size."""
     display_width, display_height = display.get_size()
@@ -144,6 +170,7 @@ def get_player_speed(keys):
 
 
 player = Player(250, 160, 32, 32)
+enemy = Enemy(400, 300, 32, 32)
 player_bullets = []
 key_stack = []  # Track pressed keys
 
@@ -251,6 +278,22 @@ def check_collision(player, speed):
             # elif player.direction == "right" and player.x < display_width / 2:
             #     player.x = ((col - 1) * tile_width)-(player.width/2)
 
+
+bullet_hit_sound = pygame.mixer.Sound('./soundFX/080998_bullet-hit-39870.mp3')  # Load sound
+
+def check_bullet_collision(bullet, walls):
+    """Check if a bullet collides with any wall."""
+    bullet_rect = pygame.Rect(bullet.x - 5, bullet.y - 5, 10, 10)  # Bullet hitbox
+
+    for wall in walls:
+        wall_rect = pygame.Rect(wall.x, wall.y, wall.width, wall.height)
+        if bullet_rect.colliderect(wall_rect):
+            bullet_hit_sound.play()  # Play sound on collision
+            return True  # Bullet collides with a wall
+    return False
+
+
+
 while True:
     display.fill((0, 82, 33))
     # draw_map(display, tiles)
@@ -333,11 +376,15 @@ while True:
     # Draw player and bullets
     player.main(display)
 
+    enemy.main(display, player)
+
     for wall in walls:
         wall.main(display)
 
     for bullet in player_bullets[:]:
         bullet.main(display)
+        if check_bullet_collision(bullet, walls):
+            player_bullets.remove(bullet)  # Remove bullet on collision
 
     clock.tick(60)
     pygame.display.update()
