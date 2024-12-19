@@ -1,0 +1,13 @@
+SCREEN_WIDTH = 1280
+SCREEN_HEIGHT = 720
+TILE_SIZE = 40
+FPS = 60
+COLORS = {
+    "PLAYER": (255, 64, 79),
+    "ENEMY": (200, 0, 0),
+    "BULLET": (0, 0, 0),
+    "LOCKING_SQUARE": (0, 0, 255),
+    "ARENA_BG": (56, 47, 6),
+    "WALL": (173, 167, 137),
+}
+MAP_WIDTH, MAP_HEIGHT = 2000, 2000
